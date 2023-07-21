@@ -14,12 +14,13 @@ def importExcel(request):
         dataset=Dataset()
         new_cpis = request.FILES['my_file']
         imported_data = dataset.load(new_cpis.read(),format='xlsx')
-        for data in imported_data:
-            data=list(data)
-            for i in range(len(data)):
-                if data[i] == '':
-                    data[i] = None
-            value = CPI(*data)
+        for i in range(3,len(imported_data)-1):
+            data=list(imported_data[i])
+            # for j in range(len(data)):
+            #     if data[j] == '':
+            #         data[j] = None
+            value = CPI(i,data[0],data[3]) #22
+            # value = CPI(len(data),"peter")
             value.save()
     
     return render(request,'form.html')
