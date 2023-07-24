@@ -27,7 +27,12 @@ class CPI(models.Model):
 class FSI(models.Model):
     name = models.CharField(max_length=100,null=True)
     fsi_score = models.FloatField(null=True)
-    class Meta:
-        # change name of model
-        verbose_name_plural = "Overview"
-        verbose_name = "Overview"
+class FATF(models.Model):
+    name = models.CharField(max_length=100,null=True)
+    fatf_score = models.FloatField(max_length=100,null=True)
+
+class Overview(models.Model):
+    name = models.CharField(max_length=100,null=True)
+    # def __str__(self):
+    #     return self.name
+    
