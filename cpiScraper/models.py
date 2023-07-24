@@ -24,3 +24,6 @@ class CPI(models.Model):
     # world_bank_cpia = models.FloatField(null=True)
     # world_economic_forum_eos = models.FloatField(null=True)
     # world_justice_project_rule_of_law_index = models.FloatField(null=True)
+class FSI(models.Model):
+    name = models.CharField(max_length=100,null=True)
+    fsi_score = models.FloatField(null=True)

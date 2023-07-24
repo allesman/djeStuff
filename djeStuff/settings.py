@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'cpiScraper',
     'import_export',
+    'django_object_actions',
 ]
 
 MIDDLEWARE = [
