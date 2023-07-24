@@ -27,3 +27,7 @@ class CPI(models.Model):
 class FSI(models.Model):
     name = models.CharField(max_length=100,null=True)
     fsi_score = models.FloatField(null=True)
+    class Meta:
+        # change name of model
+        verbose_name_plural = "Overview"
+        verbose_name = "Overview"

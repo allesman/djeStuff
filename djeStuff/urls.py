@@ -21,5 +21,6 @@ from cpiScraper import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('import/',views.importExcel,name='push_excel')
+    path('importCPI/',views.importCPI,name='push_excel'),
+    path('importFSI/',views.importFSI,name='push_excel')
 ]
