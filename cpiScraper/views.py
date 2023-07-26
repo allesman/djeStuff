@@ -1,3 +1,6 @@
+from typing import Any
+from django.db.models.query import QuerySet
+from django.http.request import HttpRequest
 from django.shortcuts import redirect, render
 from django.contrib import admin
 from .models import CPI, FSI, FATF, Overview
@@ -8,6 +11,7 @@ from django.contrib import messages
 import datetime
 from . import webscraper
 import country_converter as coco
+from django.db import models
 
 # changes the year for the cpi data, updating the url
 def setYear(value):
@@ -59,6 +63,16 @@ class OverviewAdmin(DjangoObjectActions,admin.ModelAdmin):
     list_display=('iso3','get_name','get_cpi_score','get_fsi_score','get_fatf_score')
     list_per_page=300
 
+
+    # override get_queryset to annotate the scores from the other tables and thus enable sorting
+
+    def get_queryset(self, request: HttpRequest):
+        qs = super(OverviewAdmin,self).get_queryset(request)
+        qs=qs.annotate(cpi_score=models.Subquery(CPI.objects.filter(iso3=models.OuterRef('iso3')).values('cpi_score')[:1]))
+        qs=qs.annotate(fsi_score=models.Subquery(FSI.objects.filter(iso3=models.OuterRef('iso3')).values('fsi_score')[:1]))
+        qs=qs.annotate(fatf_score=models.Subquery(FATF.objects.filter(iso3=models.OuterRef('iso3')).values('fatf_score')[:1]))
+        return qs
+
     # admin display functions to get the country name and the scores from the other tables 
 
     @admin.display(description='Country')
@@ -67,24 +81,18 @@ class OverviewAdmin(DjangoObjectActions,admin.ModelAdmin):
     
     @admin.display(description='CPI Score')
     def get_cpi_score(self, obj):
-        cpi = CPI.objects.filter(iso3=obj.iso3).first()
-        if cpi is None:
-            return None
-        return cpi.cpi_score
-    
+        return obj.cpi_score
+    get_cpi_score.admin_order_field = 'cpi_score'
+
     @admin.display(description='FATF Score')
     def get_fatf_score(self, obj):
-        fatf = FATF.objects.filter(iso3=obj.iso3).first()
-        if fatf is None:
-            return None
-        return fatf.fatf_score
+        return obj.fatf_score
+    get_fatf_score.admin_order_field = 'fatf_score'
 
     @admin.display(description='FSI Score')
     def get_fsi_score(self, obj):
-        fsi = FSI.objects.filter(iso3=obj.iso3).first()
-        if fsi is None:
-            return None
-        return fsi.fsi_score
+        return obj.fsi_score
+    get_fsi_score.admin_order_field = 'fsi_score'
 
     # admin actions to update the data
 
