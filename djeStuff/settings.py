@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'cpiScraper',
     'import_export',
     'django_object_actions',
+    'tutorial',
 ]
 
 MIDDLEWARE = [
