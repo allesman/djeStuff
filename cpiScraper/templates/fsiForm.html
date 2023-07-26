@@ -1,0 +1,13 @@
+<h1>Upload Excel File</h1>
+<p>
+  To obtain the file with FSI data, visit
+  <a href="https://fsi.taxjustice.net/download-data/" target="_blank"
+    >https://fsi.taxjustice.net/download-data/</a
+  >.
+</p>
+<p>You will need to register for an account to get access.</p>
+<form method="POST" enctype="multipart/form-data">
+  <input type="file" name="my_file" />
+  <input type="submit" name="submit" value="Upload" />
+  {% csrf_token %}
+</form>

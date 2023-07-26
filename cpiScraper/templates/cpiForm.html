@@ -1,0 +1,12 @@
+<h1>Upload Excel File</h1>
+<p>
+  To obtain the file with CPI data, visit
+  <a href="https://www.transparency.de/cpi" target="_blank"
+    >https://www.transparency.de/cpi</a
+  >.
+</p>
+<form method="POST" enctype="multipart/form-data">
+  <input type="file" name="my_file" />
+  <input type="submit" name="submit" value="Upload" />
+  {% csrf_token %}
+</form>
