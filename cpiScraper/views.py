@@ -134,7 +134,11 @@ class OverviewAdmin(DjangoObjectActions,admin.ModelAdmin):
             # Create a new CPI object and save it to the database
             # value = CPI(i,data[0],data[3])
             # value.save()
-            CPI.objects.create(iso3=data[1],cpi_score=data[3])
+            iso3=data[1]
+            # fix for Kosovo because iso3 from the official(!) dataset is incorrect
+            if iso3 == 'KSV':
+                iso3 = 'XKX'
+            CPI.objects.create(iso3=iso3,cpi_score=data[3])
     
     @admin.action(description='Update FATF lists')
     def update_fatf_lists(self, request, queryset):
@@ -146,9 +150,11 @@ class OverviewAdmin(DjangoObjectActions,admin.ModelAdmin):
         # delete old data
         FATF.objects.all().delete()
         # save new data
-        for iso3 in lists[0]:
+        for name in lists[0]:
+            iso3 = cc.convert(names=name, to='ISO3')
             FATF.objects.create(iso3=iso3,fatf_score=1000)
-        for iso3 in lists[1]:
+        for name in lists[1]:
+            iso3 = cc.convert(names=name, to='ISO3')
             FATF.objects.create(iso3=iso3,fatf_score=100)
         messages.add_message(request, messages.SUCCESS, 'FATF lists updated')
         # for name in lists[1]:
@@ -207,8 +213,11 @@ def importCPI(request):
             if data[0] is None:
                 # The first empty row is the end of the data
                 break
-            # Create a new CPI object and save it to the database
-            CPI.objects.create(iso3=data[1],cpi_score=data[3])
+            iso3=data[1]
+            # fix for Kosovo because iso3 from the official(!) dataset is incorrect
+            if iso3 == 'KSV':
+                iso3 = 'XKX'
+            CPI.objects.create(iso3=iso3,cpi_score=data[3])
             # value = CPI(i,data[0],data[3])
             # value.save()
     return render(request,'form.html')

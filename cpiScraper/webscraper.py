@@ -37,7 +37,7 @@ def getBothLists():
     output.append(getList(False))
     return output
 
-print(getBothLists())
+# print(getBothLists())
 
 # old code, using selenium:
 
