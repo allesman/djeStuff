@@ -26,3 +26,5 @@ class Overview(models.Model):
     class Meta:
         ordering = ['iso3']
         verbose_name_plural = "Overview"
+    def __str__(self):
+        return self.iso3
