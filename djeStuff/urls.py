@@ -17,10 +17,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from cpiScraper import views
+import cpiScraper.views
+import tutorial.views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('importCPI/',views.importCPI,name='push_excel'),
-    path('importFSI/',views.importFSI,name='push_excel')
+    path('importCPI/',cpiScraper.views.importCPI,name='push_excel'),
+    path('importFSI/',cpiScraper.views.importFSI,name='push_excel'),
+    path('home/',tutorial.views.home_view,name='home'),
+    path('contact/',tutorial.views.contact_view,name='contact'),
 ]

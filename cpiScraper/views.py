@@ -8,23 +8,38 @@ import tablib
 from django.contrib import messages
 import datetime
 from . import webscraper
+import country_converter as coco
+import pandas as pd
 
 # set jahr to current year
 jahr = datetime.datetime.now().year
 cpiURL = f'https://www.transparency.de/fileadmin/Redaktion/Aktuelles/{jahr}/CPI{jahr-1}_Results.xlsx'
 
+cc=coco.CountryConverter()
+
 @admin.register(FATF)
 class FATFAdmin(DjangoObjectActions,admin.ModelAdmin):
-    list_display=('name','fatf_score')
+    list_display=('iso3','get_name','fatf_score')
+    list_per_page=200
+    @admin.display(description='Country')
+    def get_name(self, obj):
+        return cc.convert(names=obj.iso3, to='name_short')
 
 @admin.register(FSI)
 class FSIAdmin(DjangoObjectActions,admin.ModelAdmin):
-    list_display=('name','fsi_score')
+    list_display=('iso3',"get_name",'fsi_score')
+    list_per_page=200
+    @admin.display(description='Country')
+    def get_name(self, obj):
+        return cc.convert(names=obj.iso3, to='name_short')
 
 @admin.register(CPI)
 class CPIAdmin(DjangoObjectActions,admin.ModelAdmin):
-    list_display=('name','cpi_score')
+    list_display=('iso3','get_name','cpi_score')
     list_per_page=200
+    @admin.display(description='Country')
+    def get_name(self, obj):
+        return cc.convert(names=obj.iso3, to='name_short')
     # list_display=[field.name for field in CPI._meta.fields]
     # @admin.action(description='Check for new data')
     # def check_for_new_data(self, request, queryset):
@@ -56,28 +71,32 @@ class CPIAdmin(DjangoObjectActions,admin.ModelAdmin):
 @admin.register(Overview)
 class OverviewAdmin(DjangoObjectActions,admin.ModelAdmin):
     
-    list_display=('name','get_cpi_score','get_fsi_score','get_fatf_score')
+    list_display=('iso3','get_name','get_cpi_score','get_fsi_score','get_fatf_score')
     list_per_page=300
     @admin.display(description='CPI Score')
     def get_cpi_score(self, obj):
-        cpi = CPI.objects.filter(name=obj.name).first()
+        cpi = CPI.objects.filter(iso3=obj.iso3).first()
         if cpi is None:
             return None
         return cpi.cpi_score
     
     @admin.display(description='FATF Score')
     def get_fatf_score(self, obj):
-        fatf = FATF.objects.filter(name=obj.name).first()
+        fatf = FATF.objects.filter(iso3=obj.iso3).first()
         if fatf is None:
             return None
         return fatf.fatf_score
 
     @admin.display(description='FSI Score')
     def get_fsi_score(self, obj):
-        fsi = FSI.objects.filter(name=obj.name).first()
+        fsi = FSI.objects.filter(iso3=obj.iso3).first()
         if fsi is None:
             return None
         return fsi.fsi_score
+    
+    @admin.display(description='Country')
+    def get_name(self, obj):
+        return cc.convert(names=obj.iso3, to='name_short')
 
     @admin.action(description='Check for new CPI data')
     def check_for_new_cpi_data(self, request, queryset):
@@ -113,8 +132,9 @@ class OverviewAdmin(DjangoObjectActions,admin.ModelAdmin):
                 # The first empty row is the end of the data
                 break
             # Create a new CPI object and save it to the database
-            value = CPI(i,data[0],data[3])
-            value.save()
+            # value = CPI(i,data[0],data[3])
+            # value.save()
+            CPI.objects.create(iso3=data[1],cpi_score=data[3])
     
     @admin.action(description='Update FATF lists')
     def update_fatf_lists(self, request, queryset):
@@ -126,30 +146,31 @@ class OverviewAdmin(DjangoObjectActions,admin.ModelAdmin):
         # delete old data
         FATF.objects.all().delete()
         # save new data
-        for name in lists[0]:
-            FATF.objects.create(name=name,fatf_score=1000)
-        for name in lists[1]:
-            FATF.objects.create(name=name,fatf_score=100)
+        for iso3 in lists[0]:
+            FATF.objects.create(iso3=iso3,fatf_score=1000)
+        for iso3 in lists[1]:
+            FATF.objects.create(iso3=iso3,fatf_score=100)
+        messages.add_message(request, messages.SUCCESS, 'FATF lists updated')
         # for name in lists[1]:
         #     value = FATF(name,100) # 100 because grey list
         #     value.save()
     
-    @admin.action(description="Reset country names")
-    def reset_country_names(self, request, queryset):
+    @admin.action(description="Reset country iso3s")
+    def reset_country_iso3s(self, request, queryset):
         Overview.objects.all().delete()
-        # combine the country names from cpi, fsi and fatf tables into list, avoiding duplicates
-        names = set()
+        # combine the country iso3s from cpi, fsi and fatf tables into list, avoiding duplicates
+        iso3s = set()
         for cpi in CPI.objects.all():
-            names.add(cpi.name)
+            iso3s.add(cpi.iso3)
         for fatf in FATF.objects.all():
-            names.add(fatf.name)
+            iso3s.add(fatf.iso3)
         for fsi in FSI.objects.all():
-            names.add(fsi.name)
-        # sort names alphabetically
-        names = sorted(names)
-        # save the country names to the overview table
-        for name in names:
-            Overview.objects.create(name=name)
+            iso3s.add(fsi.iso3)
+        # # sort iso3s alphabetically
+        # iso3s = sorted(iso3s)
+        # save the country iso3s to the overview table
+        for iso3 in iso3s:
+            Overview.objects.create(iso3=iso3)
         # for fatf in FATF.objects.all():
         #     Overview.objects.get_or_create(name=fatf.name)
         # for fsi in FSI.objects.all():
@@ -157,23 +178,39 @@ class OverviewAdmin(DjangoObjectActions,admin.ModelAdmin):
         # for cpi in CPI.objects.all():
         #     Overview.objects.get_or_create(name=cpi.name)
         # order the overview table by country name reversed
-        Overview.objects.order_by('-id')
-        messages.add_message(request, messages.SUCCESS, str(names))
+        # Overview.objects.order_by('-iso3')
+        messages.add_message(request, messages.SUCCESS, str("Regenerated country iso3s"))
 
-    changelist_actions = ('check_for_new_cpi_data','import_new_cpi_data','update_fatf_lists','reset_country_names')
+    changelist_actions = ('check_for_new_cpi_data','import_new_cpi_data','update_fatf_lists','reset_country_iso3s')
 def importCPI(request):
     if request.method=="POST":
-        cpi_resource = CPIResource()
-        dataset=tablib.Dataset()
+        # cpi_resource = CPIResource()
+        # dataset=tablib.Dataset()
+        dataset=tablib.Databook()
         new_cpis = request.FILES['my_file']
-        imported_data = dataset.load(new_cpis.read(),format='xlsx')
-        for i in range(0,len(imported_data)-1):
-            data=list(imported_data[i+3])
+        # imported_data = dataset.load(new_cpis.read(),format='xlsx')
+        # for i in range(0,len(imported_data)-1):
+        #     data=list(imported_data[i+3])
+        #     if data[0] is None:
+        #         break
+        #     value = CPI(i,data[0],data[3])
+        #     value.save()
+        #     # value=CPI(imported_data[i])
+        # Get the first sheet
+        # imported_data.xlsx = new_cpis.read()
+        # imported_data=imported_data.sheets()[0]
+        imported_data = dataset.load(new_cpis.read(),format='xlsx').sheets()[0]
+        # Iterate over the data and save to the database
+        for i in range(3,len(imported_data)):
+            # Get the row data
+            data=list(imported_data[i])
             if data[0] is None:
+                # The first empty row is the end of the data
                 break
-            value = CPI(i,data[0],data[3])
-            value.save()
-            # value=CPI(imported_data[i])
+            # Create a new CPI object and save it to the database
+            CPI.objects.create(iso3=data[1],cpi_score=data[3])
+            # value = CPI(i,data[0],data[3])
+            # value.save()
     return render(request,'form.html')
 
 def importFSI(request):
@@ -186,7 +223,9 @@ def importFSI(request):
             data=list(imported_data[i])
             if data[0] is None:
                 break
+            iso3 = cc.convert(names=data[1], to='ISO3')
+            FSI.objects.create(iso3=iso3,fsi_score=data[5])
             # value = FSI(i,data[0],data[3])
-            value=FSI(i,data[1],data[5])
-            value.save()
+            # value=FSI(i,data[1],data[5])
+            # value.save()
     return render(request,'form.html')

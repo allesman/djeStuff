@@ -2,7 +2,7 @@ from django.db import models
 
 class CPI(models.Model):
     # Columns for the following data:  Country / Territory	ISO3	Region	CPI score 2022	Rank	Standard error	Number of sources	Lower CI	Upper CI	African Development Bank CPIA	Bertelsmann Foundation Sustainable Governance Index	Bertelsmann Foundation Transformation Index	Economist Intelligence Unit Country Ratings	Freedom House Nations in Transit	Global Insights Country Risk Ratings	IMD World Competitiveness Yearbook	PERC Asia Risk Guide	PRS International Country Risk Guide	Varieties of Democracy Project	World Bank CPIA	World Economic Forum EOS	World Justice Project Rule of Law Index
-    name = models.CharField(max_length=100,null=True)
+    iso3 = models.CharField(max_length=3,null=True)
     # iso3 = models.CharField(max_length=3,null=True)
     ## region = models.CharField(max_length=100,null=True)
     cpi_score = models.FloatField(null=True)
@@ -25,14 +25,14 @@ class CPI(models.Model):
     # world_economic_forum_eos = models.FloatField(null=True)
     # world_justice_project_rule_of_law_index = models.FloatField(null=True)
 class FSI(models.Model):
-    name = models.CharField(max_length=100,null=True)
+    iso3 = models.CharField(max_length=3,null=True)
     fsi_score = models.FloatField(null=True)
 class FATF(models.Model):
-    name = models.CharField(max_length=100,null=True)
+    iso3 = models.CharField(max_length=3,null=True)
     fatf_score = models.FloatField(max_length=100,null=True)
 
 class Overview(models.Model):
-    name = models.CharField(max_length=100,null=True)
+    iso3 = models.CharField(max_length=3,null=True)
     # def __str__(self):
     #     return self.name
     
