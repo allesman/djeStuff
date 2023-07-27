@@ -20,7 +20,7 @@ from django.urls import path
 import cpiScraper.views
 
 urlpatterns = [
-    path('',admin.site.urls),
+    # path('',admin.site.urls),
     path('admin/', admin.site.urls),
     path('importCPI/',cpiScraper.views.importCPI,name='push_excel'),
     path('importFSI/',cpiScraper.views.importFSI,name='push_excel'),
