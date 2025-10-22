@@ -1,5 +1,5 @@
 webdriver-manager==3.8.4
-Django==4.2.24
+Django==4.2.25
 country-converter==1.0.0
 requests==2.32.4
 lxml==4.9.3
